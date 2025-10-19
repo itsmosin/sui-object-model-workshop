@@ -39,6 +39,7 @@ const main = async () => {
    *
    * Create a new Transaction instance from the @mysten/sui/transactions module.
    */
+  const tx = new Transaction();
 
   /**
    * Task 2:
@@ -50,6 +51,7 @@ const main = async () => {
    * Resources:
    * - SplitCoins: https://sdk.mystenlabs.com/typescript/transaction-building/basics
    */
+  const [feeCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(10)]);
 
   /**
    * Task 3:
@@ -63,7 +65,10 @@ const main = async () => {
    * Resources:
    * - Object inputs: https://sdk.mystenlabs.com/typescript/transaction-building/basics#object-references
    */
-
+  tx.moveCall({
+    target: `${PACKAGE_ID}::counter::increment`,
+    arguments: [tx.object(COUNTER_OBJECT_ID), feeCoin],
+  });
 
   /**
    * Task 4:
@@ -75,13 +80,23 @@ const main = async () => {
    * Resources:
    * - Observing transaction results: https://sdk.mystenlabs.com/typescript/transaction-building/basics#observing-the-results-of-a-transaction
    */
-  
+  const result = await suiClient.signAndExecuteTransaction({
+    signer: keypair,
+    transaction: tx,
+    options: {
+      showEffects: true,
+      showObjectChanges: true,
+      showBalanceChanges: true,
+    },
+  });
+
+  console.log("Transaction result:", JSON.stringify(result, null, 2));
 
   /**
    * Task 5: Run the script with the command below and ensure it works!
-   * 
+   *
    * pnpm input-objects
-   * 
+   *
    * Verify the transaction on the Sui Explorer: https://suiscan.xyz/testnet/home
    */
 };
